@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
                     for (item in body.data) {
                         Log.d("MainActivity", item.anime.toString())
                     }
+                    tvText.text = body.data[0].anime.canonicalTitle
                 }
             }
 
