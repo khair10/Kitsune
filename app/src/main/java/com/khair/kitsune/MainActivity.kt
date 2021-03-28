@@ -66,6 +66,25 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         super.onDestroy()
     }
 
+    override fun onClick(v: View?) {
+        val season = when (v?.id) {
+            R.id.btn2000 -> "2000"
+            R.id.btn2015 -> "2015"
+            else -> return
+        }
+        loaderCallback?.let {
+            if(season != seasonYear) {
+                seasonYear = season
+                val loader = supportLoaderManager?.restartLoader(
+                    LOADER_ID,
+                    Bundle().apply { putString("seasonYear", seasonYear) },
+                    it
+                )
+                loader.forceLoad()
+            }
+        }
+    }
+
     class AnimeLoaderCallback(context: Context, tvText: TextView) :
         LoaderManager.LoaderCallbacks<List<AnimeResponse>> {
         val context = WeakReference(context)
@@ -92,25 +111,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         override fun onLoaderReset(loader: Loader<List<AnimeResponse>>) {
             Log.d(AnimeLoader.TAG, "CALLBACK: onLoaderReset")
-        }
-    }
-
-    override fun onClick(v: View?) {
-        val season = when (v?.id) {
-            R.id.btn2000 -> "2000"
-            R.id.btn2015 -> "2015"
-            else -> return
-        }
-        loaderCallback?.let {
-            if(season != seasonYear) {
-                seasonYear = season
-                val loader = supportLoaderManager?.restartLoader(
-                    LOADER_ID,
-                    Bundle().apply { putString("seasonYear", seasonYear) },
-                    it
-                )
-                loader.forceLoad()
-            }
         }
     }
 }
