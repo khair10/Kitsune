@@ -30,12 +30,13 @@ class RetrofitHelper {
                                 json?.let {
                                     val jsonObj = it.asJsonObject
                                     name = jsonObj["canonicalTitle"].asString + 1
-                                    average = jsonObj["averageRating"].asString + 2
-                                    synopsis = jsonObj["synopsis"].asString + 3
+                                    average = if (jsonObj["averageRating"].isJsonPrimitive) jsonObj["averageRating"].asString + 2 else 2.toString()
+                                    synopsis = if (jsonObj["synopsis"].isJsonPrimitive) jsonObj["synopsis"].asString + 3 else 3.toString()
                                 }
                                 return Anime(name, average, synopsis)
                             }
                         })
+                        .serializeNulls()
                         .create()
                 )
             )
