@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.loader.app.LoaderManager
 import androidx.loader.content.Loader
+import com.khair.kitsune.models.remote.Anime
 import com.khair.kitsune.models.remote.AnimeResponse
 import java.lang.RuntimeException
 import java.lang.ref.WeakReference
@@ -18,7 +19,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     companion object {
         const val LOADER_ID = 0
     }
-    private var seasonYear = "2019"
     private var loaderCallback: AnimeLoaderCallback? = null
     private lateinit var tvText: TextView
     private lateinit var btn2000: Button
@@ -41,25 +41,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         loaderCallback?.let {
             supportLoaderManager.initLoader(
                 LOADER_ID,
-                Bundle().apply { putString("seasonYear", seasonYear) },
+                null,
                 it
             )
         }
-        if (savedInstanceState == null) {
-            supportLoaderManager.getLoader<AnimeLoader>(LOADER_ID)?.forceLoad()
-        }
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        seasonYear = savedInstanceState.getString("seasonYear") ?: seasonYear
-        tvText.text = savedInstanceState.getString("text") ?: "Empty"
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString("seasonYear", seasonYear)
-        outState.putString("text", tvText.text.toString())
-        super.onSaveInstanceState(outState)
     }
 
     override fun onDestroy() {
@@ -72,17 +57,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             R.id.btn2015 -> "2015"
             else -> return
         }
-        loaderCallback?.let {
-            if(season != seasonYear) {
-                seasonYear = season
-                val loader = supportLoaderManager?.restartLoader(
-                    LOADER_ID,
-                    Bundle().apply { putString("seasonYear", seasonYear) },
-                    it
-                )
-                loader.forceLoad()
-            }
-        }
+        val loader = supportLoaderManager.getLoader<AnimeLoader>(LOADER_ID) as AnimeLoader
+        loader.query(season)
     }
 
     class AnimeLoaderCallback(context: Context, tvText: TextView) :
@@ -94,7 +70,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             Log.d(AnimeLoader.TAG, "CALLBACK: onCreateLoader")
             context.get()?.let {
                 return when (id) {
-                    LOADER_ID -> AnimeLoader(context = it, args?.getString("seasonYear") ?: "2021")
+                    LOADER_ID -> AnimeLoader(context = it)
                     else -> throw RuntimeException("Empty context")
                 }
             }
@@ -106,7 +82,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             data: List<AnimeResponse>?
         ) {
             Log.d(AnimeLoader.TAG, "CALLBACK: onLoadFinished, $data")
-            tvText.get()?.text = data?.get(0)?.anime?.canonicalTitle
+            val text = if (data != null && data.isNotEmpty()) {
+                data[0].anime.canonicalTitle
+            } else {
+                "Empty"
+            }
+            tvText.get()?.text = text
         }
 
         override fun onLoaderReset(loader: Loader<List<AnimeResponse>>) {
