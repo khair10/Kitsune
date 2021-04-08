@@ -17,7 +17,7 @@ class AnimeLoader(context: Context) : AsyncTaskLoader<List<AnimeResponse>>(conte
     val serviceProvider = ServiceProvider(retrofit)
     val animeService = serviceProvider.animeService
     var call: Call<Response>? = null
-    var seasonYear = Calendar.getInstance().get(Calendar.YEAR).toString()
+    var seasonYear = (Calendar.getInstance().get(Calendar.YEAR) - 2).toString()
     var data = emptyList<AnimeResponse>()
     val alreadyStarted = AtomicBoolean(false)
 
@@ -41,9 +41,8 @@ class AnimeLoader(context: Context) : AsyncTaskLoader<List<AnimeResponse>>(conte
 
     override fun loadInBackground(): List<AnimeResponse>? {
         alreadyStarted.compareAndSet(false, true)
-        Log.d(TAG, "BACKGROUND")
+        Log.d(TAG, "BACKGROUND, ${Thread.currentThread().name}")
         call = animeService.getAnimes(seasonYear)
-        Thread.sleep(10000)
         val data = call?.execute()?.body()?.data
         alreadyStarted.compareAndSet(true, false)
         return data

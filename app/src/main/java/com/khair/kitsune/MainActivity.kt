@@ -1,6 +1,7 @@
 package com.khair.kitsune
 
 import android.content.Context
+import android.content.Intent
 import android.os.*
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
@@ -9,7 +10,6 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.loader.app.LoaderManager
 import androidx.loader.content.Loader
-import com.khair.kitsune.models.remote.Anime
 import com.khair.kitsune.models.remote.AnimeResponse
 import java.lang.RuntimeException
 import java.lang.ref.WeakReference
@@ -19,6 +19,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     companion object {
         const val LOADER_ID = 0
     }
+
     private var loaderCallback: AnimeLoaderCallback? = null
     private lateinit var tvText: TextView
     private lateinit var btn2000: Button
@@ -28,7 +29,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        Log.d("MAINACTIVITY", "onCreate, thread = ${Thread.currentThread().name}")
         tvText = findViewById(R.id.tvText)
         btn2000 = findViewById<Button>(R.id.btn2000).apply {
             setOnClickListener(this@MainActivity)
@@ -83,6 +84,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         ) {
             Log.d(AnimeLoader.TAG, "CALLBACK: onLoadFinished, $data")
             val text = if (data != null && data.isNotEmpty()) {
+                context.get()?.let {context ->
+                    data.forEach {animeResponse ->
+                        context.startService(Intent(context, ImageDownloadingService::class.java)
+                            .apply {
+                                putExtra(ImageDownloadingService.URL_KEY, animeResponse.anime.image.tiny)
+                                putExtra(ImageDownloadingService.NAME_KEY, animeResponse.anime.canonicalTitle)
+                            }
+                        )
+                    }
+                }
                 data[0].anime.canonicalTitle
             } else {
                 "Empty"
