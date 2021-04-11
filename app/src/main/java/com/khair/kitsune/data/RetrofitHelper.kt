@@ -44,7 +44,7 @@ class RetrofitHelper {
                 )
             )
             .baseUrl("https://kitsu.io/api/edge/")
-//            .callbackExecutor(Executors.newSingleThreadExecutor())
+            .callbackExecutor(Executors.newSingleThreadExecutor())
             .build()
     }
 }
