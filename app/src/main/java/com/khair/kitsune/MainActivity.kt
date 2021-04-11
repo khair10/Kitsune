@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             val text = if (data != null && data.isNotEmpty()) {
                 context.get()?.let {context ->
                     data.forEach {animeResponse ->
-                        context.startService(Intent(context, ImageDownloadingService::class.java)
+                        ImageDownloadingService.enqueueWork(context, Intent(context, ImageDownloadingService::class.java)
                             .apply {
                                 putExtra(ImageDownloadingService.URL_KEY, animeResponse.anime.image.tiny)
                                 putExtra(ImageDownloadingService.NAME_KEY, animeResponse.anime.canonicalTitle)
